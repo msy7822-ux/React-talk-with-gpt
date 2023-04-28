@@ -5,13 +5,13 @@ import { call } from "./lib/api/openai";
 const App = () => {
   const [trigger, setTrigger] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [response, setResponse] = useState<string[]>([]);
+  const [response, setResponse] = useState<string>("");
   const [disabled, setDisabled] = useState(false);
   const [finishMessage, setFinishMessage] = useState(false);
   const [messageText, setMessageText] = useState<string>("");
 
   const onData = (data: string, isFinished?: boolean) => {
-    setResponse((before) => [...before, data]);
+    setResponse(data);
     setFinishMessage(isFinished ?? false);
   };
 
@@ -41,12 +41,16 @@ const App = () => {
     if (response.length > 0) setIsLoading(false);
 
     if (finishMessage) {
-      const uttr = new SpeechSynthesisUtterance(response.join(""));
+      const uttr = new SpeechSynthesisUtterance(
+        response
+          .replace(/\r?\n?/, "")
+          .replace(/\n\n/, "")
+          .replace(/\n\n\n/, "")
+      );
       window.speechSynthesis.speak(uttr);
-
       uttr.onend = () => {
         setFinishMessage(false);
-        setResponse([]);
+        setResponse("");
       };
     }
   }, [response, finishMessage]);
@@ -78,6 +82,7 @@ const App = () => {
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-gray-400"
         onClick={() => {
           stopRecognition();
+          window.location.reload();
         }}
       >
         音声入力stop
@@ -85,7 +90,17 @@ const App = () => {
 
       <div>Q: {messageText}</div>
       <div className="text-left">
-        A: {isLoading ? <p>送信中...</p> : <>{response.join("")}</>}
+        A:{" "}
+        {isLoading ? (
+          <p>送信中...</p>
+        ) : (
+          <>
+            {response
+              .replace(/\r?\n?/, "")
+              .replace(/\n\n/, "")
+              .replace(/\n\n\n/, "")}
+          </>
+        )}
       </div>
     </div>
   );

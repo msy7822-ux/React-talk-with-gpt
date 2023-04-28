@@ -28,7 +28,10 @@ export const call = async (
         const array = [...progressEvent.target.responseText.matchAll(regex)];
 
         const text = array.map((a) => a[1]);
-        onData(text.slice(-1).join(), isFinished);
+        console.log(text.flat().join(""));
+        onData(text.flat().join("").replace(/\r?\n/g, ""), isFinished);
+
+        if (isFinished) return;
       },
     }
   );
